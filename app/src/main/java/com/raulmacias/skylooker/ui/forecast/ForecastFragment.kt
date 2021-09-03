@@ -16,6 +16,7 @@ import com.raulmacias.skylooker.databinding.FragmentForecastBinding
 
 class ForecastFragment : Fragment(R.layout.fragment_forecast) {
     private lateinit var binding: FragmentForecastBinding
+    private lateinit var adapter: ForecastAdapter
     private val viewModel by activityViewModels<ForecastViewModel>{
         ForecastViewModelFactory(ForecastRepoImpl(ForecastDataSource(RetrofitClient.webService)))
     }
@@ -27,12 +28,17 @@ class ForecastFragment : Fragment(R.layout.fragment_forecast) {
         viewModel.fetchForecast().observe(viewLifecycleOwner, Observer { result ->
             when(result){
                 is Resource.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, "LOADING", Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Error -> {
+                    binding.progressBar.visibility = View.GONE
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Success -> {
+                    binding.progressBar.visibility = View.GONE
+                    adapter = result.data?.let { ForecastAdapter(it.list) }!!
+                    binding.rvForecast.adapter = adapter
                     Toast.makeText(context, "SUCCESS", Toast.LENGTH_SHORT).show()
                 }
             }
