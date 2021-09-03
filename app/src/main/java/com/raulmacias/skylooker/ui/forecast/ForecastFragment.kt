@@ -33,13 +33,13 @@ class ForecastFragment : Fragment(R.layout.fragment_forecast) {
                 }
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE
-                    Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "ERROR: ${result.message.toString()}", Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Success -> {
                     binding.progressBar.visibility = View.GONE
-                    adapter = result.data?.let { ForecastAdapter(it.list) }!!
+                    adapter = ForecastAdapter(result.data!!.list)
                     binding.rvForecast.adapter = adapter
-                    Toast.makeText(context, "SUCCESS", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "SUCCESS ${result.data.list}", Toast.LENGTH_SHORT).show()
                 }
             }
         })

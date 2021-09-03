@@ -8,8 +8,5 @@ interface ForecastRepo {
 }
 
 class ForecastRepoImpl(private val dataSource: ForecastDataSource):ForecastRepo{
-    override suspend fun fetchForecast(): ForecastResult {
-        return dataSource.fetchForecast()
-    }
-
+    override suspend fun fetchForecast(): ForecastResult = dataSource.fetchForecast()
 }

@@ -11,7 +11,7 @@
         android:clipToPadding="true"
         app:cardCornerRadius="8dp"
         android:layout_margin="8dp"
-        android:backgroundTint="@color/cardview_dark_background"
+        android:backgroundTint="@color/purple_200"
         android:id="@+id/cardView">
 
         <LinearLayout

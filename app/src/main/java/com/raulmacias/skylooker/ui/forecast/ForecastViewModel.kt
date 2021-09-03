@@ -3,12 +3,15 @@ package com.raulmacias.skylooker.ui.forecast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import com.raulmacias.skylooker.application.Resource
+import com.raulmacias.skylooker.data.model.ForecastResult
 import com.raulmacias.skylooker.data.repo.ForecastRepo
+import kotlinx.coroutines.Dispatchers
 
 class ForecastViewModel(private val repo: ForecastRepo):ViewModel() {
 
-    fun fetchForecast() = liveData{
+    fun fetchForecast() = liveData<Resource<ForecastResult>>(viewModelScope.coroutineContext + Dispatchers.Main){
         emit(Resource.Loading())
         try {
             emit(Resource.Success(repo.fetchForecast()))

@@ -10,8 +10,11 @@ import retrofit2.http.Query
 
 interface WebService {
 
-    @GET(value = AppConstants.FORECAST_URL)
-    suspend fun getForecast(@Query("q") city: String): ForecastResult
+    @GET("forecast")
+    suspend fun getForecast(
+        @Query("q") city: String,
+        @Query("appid") id: String,
+    ): ForecastResult
 
 }
 
