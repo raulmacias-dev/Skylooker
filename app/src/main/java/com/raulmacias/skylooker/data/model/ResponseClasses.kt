@@ -30,7 +30,7 @@ data class Forecast (
     @SerializedName("clouds") val clouds : Clouds,
     @SerializedName("wind") val wind : Wind,
     @SerializedName("visibility") val visibility : Int,
-    @SerializedName("pop") val pop : Int,
+    @SerializedName("pop") val pop : Double,
     @SerializedName("sys") val sys : Sys,
     @SerializedName("dt_txt") val dt_txt : String,
     @SerializedName("name") val name : String,
@@ -59,7 +59,9 @@ data class Wind (
 )
 
 data class Sys (
-    @SerializedName("pod") val pod : String
+    @SerializedName("pod") val pod : String,
+    @SerializedName("sunrise") val sunrise : Long,
+    @SerializedName("sunset") val sunset : Long
 )
 
 data class Weather (

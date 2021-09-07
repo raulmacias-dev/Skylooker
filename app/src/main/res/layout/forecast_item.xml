@@ -31,8 +31,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:textStyle="italic|bold"
+                    android:textStyle="italic"
                     android:textAlignment="center"
+                    android:textColor="@color/white"
                     tools:text="14:00" />
 
                 <ImageView
@@ -49,7 +50,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textSize="18dp"
                     android:textStyle="bold"
                     android:textAlignment="center"

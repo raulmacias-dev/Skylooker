@@ -15,12 +15,14 @@ interface WebService {
     suspend fun getForecast(
         @Query("q") city: String,
         @Query("appid") id: String,
+        @Query("units") units: String
     ): ForecastResult
 
     @GET("weather")
     suspend fun getWeather(
         @Query("q") city: String,
         @Query("appid") id: String,
+        @Query("units") units: String
     ):Forecast
 
 }

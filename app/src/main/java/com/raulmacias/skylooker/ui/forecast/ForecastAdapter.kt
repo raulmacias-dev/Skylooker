@@ -28,7 +28,7 @@ class ForecastAdapter(
         val context: Context
     ): BaseViewHolder<Forecast>(binding.root) {
         override fun bind(item: Forecast) {
-            binding.textViewForecast.text = "${((item.main.temp_kf * 9/ 5) + 32).roundToInt()} º"
+            binding.textViewForecast.text = "${item.main.temp.roundToInt()} ºC"
 
             Glide.with(context).load("${AppConstants.BASE_URL_IMG}${item.weather[0].icon}@4x.png").centerCrop().into(binding.imageForecast)
 

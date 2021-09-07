@@ -71,6 +71,7 @@
                     android:id="@+id/temp_min"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/white"
                     android:text="Min Temp: 05:05 AM" />
 
                 <Space
@@ -81,6 +82,7 @@
                     android:id="@+id/temp_max"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/white"
                     android:text="Max Temp: 05:05 PM" />
             </LinearLayout>
 

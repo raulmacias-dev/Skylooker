@@ -48,7 +48,17 @@ class ForecastFragment : Fragment(R.layout.fragment_forecast) {
                     val date = Date(result.data!!.dt * 1000)
                     binding.updatedAt.text = sdf.format(date)
 
-                    binding.temp.text = "${((result.data!!.main.temp_kf * 9/ 5) + 32).roundToInt()} ºC"
+                    binding.temp.text = "${result.data!!.main.temp.roundToInt()} ºC"
+                    binding.tempMin.text = "Temp Min: ${result.data!!.main.temp_min.roundToInt()} ºC"
+                    binding.tempMax.text = "Temp Max: ${result.data!!.main.temp_max.roundToInt()} ºC"
+                    binding.pressure.text = result.data!!.main.pressure.toString()
+                    binding.humidity.text = result.data!!.main.humidity.toString()
+                    val sdfHora = SimpleDateFormat("HH:mm")
+                    val sunrise = Date(result.data!!.sys.sunrise * 1000)
+                    binding.sunrise.text = sdfHora.format(sunrise)
+                    val sunset = Date(result.data!!.sys.sunset * 1000)
+                    binding.sunset.text = sdfHora.format(sunset)
+                    binding.wind.text = "${result.data!!.wind.speed}"
                 }
             }
         })
