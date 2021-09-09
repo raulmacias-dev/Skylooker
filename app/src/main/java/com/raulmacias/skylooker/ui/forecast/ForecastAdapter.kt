@@ -28,11 +28,12 @@ class ForecastAdapter(
         val context: Context
     ): BaseViewHolder<Forecast>(binding.root) {
         override fun bind(item: Forecast) {
-            binding.textViewForecast.text = "${item.main.temp.roundToInt()} ºC"
+            binding.textViewForecast.text = "${item.main.temp.roundToInt()}"
+            binding.textViewPop.text = "${item.pop}"
 
             Glide.with(context).load("${AppConstants.BASE_URL_IMG}${item.weather[0].icon}@4x.png").centerCrop().into(binding.imageForecast)
 
-            val sdf = SimpleDateFormat("HH:mm")
+            val sdf = SimpleDateFormat("dd MMM HH:mm")
             val date = Date(item.dt * 1000)
             binding.textViewDate.text = sdf.format(date)
         }
