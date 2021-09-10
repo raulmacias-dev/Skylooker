@@ -1,7 +1,15 @@
 package com.raulmacias.skylooker
 
+import android.os.Bundle
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentFactory
+import androidx.fragment.app.testing.FragmentScenario
+import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.lifecycle.Lifecycle
+import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.raulmacias.skylooker.ui.forecast.ForecastFragment
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,4 +29,5 @@ class ExampleInstrumentedTest {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.raulmacias.skylooker", appContext.packageName)
     }
+
 }
