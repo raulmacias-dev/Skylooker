@@ -1,58 +1,61 @@
 package com.raulmacias.skylooker.ui.forecast
 
-
-import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Address
-import android.location.Geocoder
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.raulmacias.skylooker.R
 import com.raulmacias.skylooker.application.AppConstants
 import com.raulmacias.skylooker.application.Resource
 import com.raulmacias.skylooker.data.model.Forecast
+import com.raulmacias.skylooker.data.model.WeatherResult
 import com.raulmacias.skylooker.data.remote.RetrofitClient
 import com.raulmacias.skylooker.data.repo.ForecastRepoImpl
+import com.raulmacias.skylooker.data.repo.WeatherRepoImpl
 import com.raulmacias.skylooker.data.source.ForecastDataSource
+import com.raulmacias.skylooker.data.source.WeatherDataSource
 import com.raulmacias.skylooker.databinding.FragmentForecastBinding
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
 
-class ForecastFragment : Fragment(com.raulmacias.skylooker.R.layout.fragment_forecast) {
+class ForecastFragment : Fragment(R.layout.fragment_forecast) {
 
     private lateinit var binding: FragmentForecastBinding
     private lateinit var adapter: ForecastAdapter
     private val viewModel by activityViewModels<ForecastViewModel>{
-        ForecastViewModelFactory(ForecastRepoImpl(ForecastDataSource(RetrofitClient.webService)))
+        ForecastViewModelFactory(
+            ForecastRepoImpl(ForecastDataSource(RetrofitClient.webService)),
+            WeatherRepoImpl(WeatherDataSource(RetrofitClient.webService)),
+            fragment = this)
     }
-
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentForecastBinding.bind(view)
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        getLocation()
-
-        binding.inputFindCityWeather.setOnKeyListener(View.OnKeyListener{ _, keyCode, event ->
-            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER){
+        binding.inputFindCityWeather.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
                 fetchData("")
             }
             false
+        }
+
+        viewModel.location.observe(viewLifecycleOwner, {location ->
+            if (location.isNotBlank()){
+                binding.textViewLocation.text = getString(R.string.location_found, location)
+                fetchData(locationName = location)
+            }else{
+                binding.textViewLocation.text = getString(R.string.location_not_fount)
+            }
         })
+
+        viewModel.getLocation()
     }
 
     private fun fetchData(locationName: String){
@@ -63,61 +66,64 @@ class ForecastFragment : Fragment(com.raulmacias.skylooker.R.layout.fragment_for
             locationName
         }
 
-        viewModel.fetchWeather(city = location ).observe(viewLifecycleOwner, Observer { result ->
+        viewModel.fetchWeather(city = location ).observe(viewLifecycleOwner, { result ->
             when(result){
                 is Resource.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                     binding.searchbg.visibility = View.VISIBLE
                     binding.mainContainer.visibility = View.GONE
-                    Toast.makeText(context, "CARGANDO", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Cargando...", Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE
                     binding.searchbg.visibility = View.VISIBLE
                     binding.mainContainer.visibility = View.GONE
-                    Toast.makeText(context, "CIUDAD NO EXISTE O NO SE PUEDO REALIZAR LA CONSULTA", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Ciudad no existe o la consulta no obtuvo respuesta", Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Success -> {
 
                     result.data?.let { bindWeather(it) }
 
-                    viewModel.fetchForecast(city = location).observe(viewLifecycleOwner, Observer { resultForecast ->
-                        when(resultForecast){
-                            is Resource.Loading -> {
-                                binding.progressBar.visibility = View.VISIBLE
+                    viewModel.fetchForecast(city = location).observe(viewLifecycleOwner,
+                        { resultForecast ->
+                            when(resultForecast){
+                                is Resource.Loading -> {
+                                    binding.progressBar.visibility = View.VISIBLE
+                                }
+                                is Resource.Error -> {
+                                    binding.progressBar.visibility = View.GONE
+                                }
+                                is Resource.Success -> {
+                                    binding.progressBar.visibility = View.GONE
+                                    adapter = ForecastAdapter(resultForecast.data!!.list)
+                                    binding.rvForecast.adapter = adapter
+                                    binding.inputFindCityWeather.text?.clear()
+                                }
                             }
-                            is Resource.Error -> {
-                                binding.progressBar.visibility = View.GONE
-                            }
-                            is Resource.Success -> {
-                                binding.progressBar.visibility = View.GONE
-                                adapter = ForecastAdapter(resultForecast.data!!.list)
-                                binding.rvForecast.adapter = adapter
-                                binding.inputFindCityWeather.text?.clear()
-                            }
-                        }
-                    })
+                        })
                 }
             }
         })
     }
-    private fun bindWeather(data: Forecast){
+    private fun bindWeather(data: WeatherResult){
         binding.progressBar.visibility = View.GONE
         binding.searchbg.visibility = View.GONE
         binding.mainContainer.visibility = View.VISIBLE
-        Glide.with(requireContext()).load("${AppConstants.BASE_URL_IMG}${data.weather[0].icon}@4x.png").centerCrop().into(binding.imageViewWeather)
 
+        Glide.with(requireContext()).load("${AppConstants.BASE_URL_IMG}${data.weather[0].icon}@4x.png").centerCrop().into(binding.imageViewWeather)
         changeImageDetail(data.weather[0].icon)
 
         binding.address.text = data.name
-        val sdf = SimpleDateFormat("dd MMM yyyy HH:mm")
+
+        val sdf = SimpleDateFormat(getString(R.string.format_fecha), Locale.getDefault())
         val date = Date(data.dt * 1000)
         binding.updatedAt.text = sdf.format(date)
 
-        binding.temp.text = "${data.main.temp.roundToInt()} º"
-        binding.tempMin.text = "Temp Min: ${data.main.temp_min.roundToInt()} ºC"
-        binding.tempMax.text = "Temp Max: ${data.main.temp_max.roundToInt()} ºC"
-        val sdfHora = SimpleDateFormat("HH:mm")
+        binding.temp.text =  getString(R.string.temp, data.main.temp.roundToInt())
+        binding.tempMin.text = getString(R.string.temp_min_max,"Min", data.main.temp_min.roundToInt())
+        binding.tempMax.text = getString(R.string.temp_min_max,"Max", data.main.temp_min.roundToInt())
+
+        val sdfHora = SimpleDateFormat(getString(R.string.format_hora), Locale.getDefault())
         val sunrise = Date(data.sys.sunrise * 1000)
         binding.sunrise.text = sdfHora.format(sunrise)
         val sunset = Date(data.sys.sunset * 1000)
@@ -125,51 +131,13 @@ class ForecastFragment : Fragment(com.raulmacias.skylooker.R.layout.fragment_for
     }
     private fun changeImageDetail(iconCode: String?){
         when (iconCode) {
-            "01d", "02d", "03d", "04d" -> binding.imageViewDetail.setImageResource(com.raulmacias.skylooker.R.drawable.sunny_day)
-            "09d", "10d", "11d" -> binding.imageViewDetail.setImageResource(com.raulmacias.skylooker.R.drawable.raining_day)
-            "13d", "50d" -> binding.imageViewDetail.setImageResource(com.raulmacias.skylooker.R.drawable.snowfalling_day)
+            "01d", "02d", "03d", "04d" -> binding.imageViewDetail.setImageResource(R.drawable.sunny_day)
+            "09d", "10d", "11d" -> binding.imageViewDetail.setImageResource(R.drawable.raining_day)
+            "13d", "50d" -> binding.imageViewDetail.setImageResource(R.drawable.snowfalling_day)
         }
     }
 
-    private fun getLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-            && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                AppConstants.LOCATION_REQUEST
-            )
-        } else {
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener(requireActivity()) { location ->
-                    if (location != null) {
-                        val geocoder = Geocoder(requireContext(), Locale.getDefault())
-                        var addresses: List<Address> = emptyList()
-                        addresses = geocoder.getFromLocation(
-                            location.latitude,
-                            location.longitude,
-                            // In this sample, we get just a single address.
-                            1)
-                        fetchData(addresses[0].locality)
-                        binding.textViewLocation.text = "Tú ubicación: ${addresses[0].locality}"
-                        Log.d("dev_", "adress: ${addresses[0].locality}")
-                    } else {
-                        binding.textViewLocation.text = "No encontrada última ubicación"
-                        Log.d("dev_", "not location")
-                    }
-                }
-        }
-    }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -182,9 +150,9 @@ class ForecastFragment : Fragment(com.raulmacias.skylooker.R.layout.fragment_for
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
                 ) {
-                    getLocation()
+                    viewModel.getLocation()
                 } else {
-                    Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.permission_denied), Toast.LENGTH_SHORT).show()
                 }
             }
         }

@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder
 import com.raulmacias.skylooker.application.AppConstants
 import com.raulmacias.skylooker.data.model.Forecast
 import com.raulmacias.skylooker.data.model.ForecastResult
+import com.raulmacias.skylooker.data.model.WeatherResult
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -23,7 +24,7 @@ interface WebService {
         @Query("q") city: String,
         @Query("appid") id: String,
         @Query("units") units: String
-    ):Forecast
+    ): WeatherResult
 
 }
 

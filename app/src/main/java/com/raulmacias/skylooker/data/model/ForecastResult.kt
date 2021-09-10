@@ -1,9 +1,12 @@
 package com.raulmacias.skylooker.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
-import java.util.*
 
+@Entity
 data class ForecastResult(
+    @PrimaryKey
     @SerializedName("city") val city: City,
     @SerializedName("list")val list: List<Forecast>
 )
@@ -23,7 +26,6 @@ data class Coord (
 )
 
 data class Forecast (
-
     @SerializedName("dt") val dt : Long,
     @SerializedName("main") val main : Main,
     @SerializedName("weather") val weather : List<Weather>,
@@ -60,8 +62,6 @@ data class Wind (
 
 data class Sys (
     @SerializedName("pod") val pod : String,
-    @SerializedName("sunrise") val sunrise : Long,
-    @SerializedName("sunset") val sunset : Long
 )
 
 data class Weather (

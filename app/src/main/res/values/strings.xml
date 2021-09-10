@@ -4,4 +4,11 @@
     <string name="today">Today</string>
     <string name="search_city_weather">Busca el clima de una ciudad</string>
     <string name="search_for_a_city">Search for a city</string>
+    <string name="temp">%1d º"</string>
+    <string name="temp_min_max">Temp %1s: %2d ºC"</string>
+    <string name="format_hora">HH:mm</string>
+    <string name="format_fecha">dd MMM yyyy HH:mm</string>
+    <string name="location_found">Tu ubicación: %1s</string>
+    <string name="location_not_fount">No se encontró tú ubicación</string>
+    <string name="permission_denied">Permiso Ubicación Denegado</string>
 </resources>
