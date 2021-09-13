@@ -7,12 +7,12 @@ import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.raulmacias.skylooker.MainActivity
 import com.raulmacias.skylooker.application.AppConstants
 import com.raulmacias.skylooker.application.Resource
@@ -30,8 +30,42 @@ class ForecastViewModel(
     private val fragment: Fragment):ViewModel() {
 
     private var fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(fragment.requireContext())
-
+    private var locationRequest: LocationRequest = LocationRequest.create()?.apply {
+        interval = 10000
+        fastestInterval = 5000
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }!!
+    private lateinit var locationCallback: LocationCallback
     var location = MutableLiveData<String>("")
+
+    init {
+
+        locationCallback = object : LocationCallback(){
+            override fun onLocationResult(p0: LocationResult) {
+                val geocoder = Geocoder(fragment.requireContext(), Locale.getDefault())
+                var addresses: List<Address> = geocoder.getFromLocation(p0.lastLocation.latitude, p0.lastLocation.longitude, 1)
+                location.value = addresses[0].locality
+                //Una vez obtenida la localización para la actualización porque no necesita que actualize continuamente
+                fusedLocationClient.removeLocationUpdates(this)
+            }
+        }
+
+        if (ActivityCompat.checkSelfPermission(fragment.requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(fragment.requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Solicitar Permisos
+            ActivityCompat.requestPermissions(fragment.requireActivity(),
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                AppConstants.LOCATION_REQUEST
+            )
+        }else{
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper() )
+        }
+
+    }
 
     fun fetchWeather(city: String) = liveData<Resource<WeatherResult>>(viewModelScope.coroutineContext + Dispatchers.Main) {
         emit(Resource.Loading())
@@ -53,17 +87,11 @@ class ForecastViewModel(
 
      fun getLocation(){
 
-        if (ActivityCompat.checkSelfPermission(
-                fragment.requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-            && ActivityCompat.checkSelfPermission(
-                fragment.requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+        if (ActivityCompat.checkSelfPermission(fragment.requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(fragment.requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                fragment.requireActivity(),
+            // Solicitar permisos
+            ActivityCompat.requestPermissions(fragment.requireActivity(),
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
@@ -83,6 +111,7 @@ class ForecastViewModel(
                         this.location.value = ""
                     }
                 }
+
         }
     }
 

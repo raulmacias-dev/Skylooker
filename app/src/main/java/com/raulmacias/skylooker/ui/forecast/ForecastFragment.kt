@@ -11,7 +11,6 @@ import com.bumptech.glide.Glide
 import com.raulmacias.skylooker.R
 import com.raulmacias.skylooker.application.AppConstants
 import com.raulmacias.skylooker.application.Resource
-import com.raulmacias.skylooker.data.model.Forecast
 import com.raulmacias.skylooker.data.model.WeatherResult
 import com.raulmacias.skylooker.data.remote.RetrofitClient
 import com.raulmacias.skylooker.data.repo.ForecastRepoImpl
@@ -60,7 +59,7 @@ class ForecastFragment : Fragment(R.layout.fragment_forecast) {
 
     private fun fetchData(locationName: String){
 
-        var location : String = if (locationName.isBlank()){
+        val location : String = if (locationName.isBlank()){
             binding.inputFindCityWeather.text.toString()
         }else{
             locationName
@@ -111,7 +110,13 @@ class ForecastFragment : Fragment(R.layout.fragment_forecast) {
         binding.mainContainer.visibility = View.VISIBLE
 
         Glide.with(requireContext()).load("${AppConstants.BASE_URL_IMG}${data.weather[0].icon}@4x.png").centerCrop().into(binding.imageViewWeather)
-        changeImageDetail(data.weather[0].icon)
+
+        when(data.weather[0].icon){
+            "01d", "02d"-> binding.imageViewDetail.setImageResource(R.drawable.sunny_day)
+            "03d", "04d" -> binding.imageViewDetail.setImageResource(R.drawable.cloudy_day)
+            "09d", "10d", "11d" -> binding.imageViewDetail.setImageResource(R.drawable.raining_day)
+            "13d", "50d" -> binding.imageViewDetail.setImageResource(R.drawable.snowfalling_day)
+        }
 
         binding.address.text = data.name
 
@@ -129,15 +134,6 @@ class ForecastFragment : Fragment(R.layout.fragment_forecast) {
         val sunset = Date(data.sys.sunset * 1000)
         binding.sunset.text = sdfHora.format(sunset)
     }
-    private fun changeImageDetail(iconCode: String?){
-        when (iconCode) {
-            "01d", "02d", "03d", "04d" -> binding.imageViewDetail.setImageResource(R.drawable.sunny_day)
-            "09d", "10d", "11d" -> binding.imageViewDetail.setImageResource(R.drawable.raining_day)
-            "13d", "50d" -> binding.imageViewDetail.setImageResource(R.drawable.snowfalling_day)
-        }
-    }
-
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

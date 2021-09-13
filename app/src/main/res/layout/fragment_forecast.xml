@@ -316,7 +316,7 @@
                 android:id="@+id/imageViewDetail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:srcCompat="@drawable/raining_day" />
+                app:srcCompat="@drawable/sunny_day" />
 
         </LinearLayout>
 
